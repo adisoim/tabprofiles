@@ -1,0 +1,126 @@
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+  font-family: Arial, sans-serif;
+  min-width: 320px;
+}
+
+input.new-profile-input {
+  width: 70%;
+  padding: 6px 8px;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+button {
+  padding: 4px 8px;
+  font-size: 0.85rem;
+  line-height: 1;
+  border-radius: 4px;
+  cursor: pointer;
+  white-space: nowrap;
+  min-width: 90px;
+  border: 1px solid #888;
+  background-color: #000000;
+  transition: background-color 0.2s ease;
+}
+
+button:hover:not(:disabled) {
+  background-color: #ddd;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+button.delete-btn {
+  color: red;
+  border-color: red;
+}
+
+button.delete-btn:hover:not(:disabled) {
+  background-color: #fdd;
+}
+
+h2 {
+  margin-bottom: 1rem;
+}
+
+.new-profile-container {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 1rem;
+}
+
+.profiles-container {
+  margin-top: 1rem;
+}
+
+ul {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+
+.profile-item {
+  margin-bottom: 1rem;
+}
+
+.profile-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: nowrap;
+}
+
+.profile-name {
+  font-weight: bold;
+  font-size: 1.2rem;
+  min-width: 150px;
+  text-align: left;
+}
+
+.profile-buttons {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+}
+
+.links-editor {
+  margin-top: 0.5rem;
+  text-align: left;
+  max-width: 600px;
+  margin-left: 150px; /* align under buttons */
+}
+
+.links-list {
+  list-style: none;
+  padding-left: 0;
+  margin-top: 0.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.links-list li {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 4px;
+  align-items: center;
+}
+
+.links-list input[type="text"] {
+  flex-grow: 1;
+  padding: 4px 8px;
+  font-size: 0.9rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.current-profile {
+  margin-top: 1rem;
+  font-weight: bold;
+}
