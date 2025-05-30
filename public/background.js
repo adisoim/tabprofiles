@@ -6,8 +6,20 @@ let originalTabs = null;
 
 function loadProfiles() {
   return new Promise((resolve) => {
-    chrome.storage.local.get("profiles", (data) => {
+    chrome.storage.local.get("profiles", async (data) => {
       profiles = data.profiles || {};
+
+      // Clear active flags for all profiles on startup
+      Object.keys(profiles).forEach((name) => {
+        profiles[name].active = false;
+      });
+
+      currentProfile = null;
+      originalTabs = null;
+
+      // Save updated profiles back to storage to reflect no active profile
+      await chrome.storage.local.set({ profiles });
+
       resolve();
     });
   });
