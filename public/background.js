@@ -25,18 +25,18 @@ function loadProfiles() {
   });
 }
 
-chrome.runtime.onStartup.addListener(() => {
-  profiles = {};
+chrome.runtime.onStartup.addListener(async () => {
+  // profiles = {};;
   currentProfile = null;
   originalTabs = null;
-  loadProfiles();
+  await loadProfiles();
 });
 
-chrome.runtime.onInstalled.addListener(() => {
-  profiles = {};
+chrome.runtime.onInstalled.addListener(async () => {
+  // profiles = {};
   currentProfile = null;
   originalTabs = null;
-  loadProfiles();
+  await loadProfiles();
 });
 
 function captureCurrentTabs() {
@@ -80,6 +80,10 @@ function openTabSet(tabSet) {
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   (async () => {
+    const data = await chrome.storage.local.get("profiles");
+    profiles = data.profiles || {};
+    currentProfile =
+      Object.keys(profiles).find((name) => profiles[name].active) || null;
     switch (msg.action) {
       case "createProfile":
         if (msg.name && !profiles[msg.name]) {

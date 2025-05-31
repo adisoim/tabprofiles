@@ -1,5 +1,14 @@
 /* global chrome */
 import { useEffect, useState } from "react";
+import {
+  Box,
+  Button,
+  Paper,
+  TextField,
+  Typography,
+  Stack,
+  Divider,
+} from "@mui/material";
 import "./App.css";
 
 export default function App() {
@@ -29,58 +38,33 @@ export default function App() {
   const createProfile = () => {
     const trimmedName = newProfileName.trim();
     if (!trimmedName) return;
-
     setIsLoading(true);
-
-    setProfiles((prev) => [...prev, { name: trimmedName, active: false }]);
-    setNewProfileName("");
-
     chrome.runtime.sendMessage(
       { action: "createProfile", name: trimmedName },
       () => {
+        setNewProfileName("");
         fetchState();
-        setIsLoading(false);
       }
     );
   };
 
   const activateProfile = (name) => {
     setIsLoading(true);
-
-    setCurrentProfile(name);
-    setProfiles((prev) => prev.map((p) => ({ ...p, active: p.name === name })));
-
     chrome.runtime.sendMessage({ action: "activateProfile", name }, fetchState);
   };
 
   const deactivateProfile = () => {
     setIsLoading(true);
-
-    setCurrentProfile(null);
-    setProfiles((prev) => prev.map((p) => ({ ...p, active: false })));
-
     chrome.runtime.sendMessage({ action: "deactivateProfile" }, fetchState);
   };
 
   const deleteProfile = (name) => {
     if (
       !window.confirm(`Delete profile "${name}"? This action cannot be undone.`)
-    ) {
+    )
       return;
-    }
-
     setIsLoading(true);
-
-    setProfiles((prev) => prev.filter((p) => p.name !== name));
-
-    if (currentProfile === name) {
-      setCurrentProfile(null);
-    }
-
-    chrome.runtime.sendMessage({ action: "deleteProfile", name }, () => {
-      fetchState();
-      setIsLoading(false);
-    });
+    chrome.runtime.sendMessage({ action: "deleteProfile", name }, fetchState);
   };
 
   const toggleLinks = (name) => {
@@ -90,35 +74,25 @@ export default function App() {
     } else {
       const prof = profiles.find((p) => p.name === name);
       setExpandedProfile(name);
-
-      const links = prof?.tabs?.length ? prof.tabs.map((tab) => tab.url) : [];
-      setEditingLinks(links);
+      setEditingLinks(prof?.tabs?.map((tab) => tab.url) || []);
     }
   };
 
   const updateLink = (index, newUrl) => {
-    setEditingLinks((prev) => {
-      const copy = [...prev];
-      copy[index] = newUrl;
-      return copy;
-    });
+    const updated = [...editingLinks];
+    updated[index] = newUrl;
+    setEditingLinks(updated);
   };
 
-  const addLink = () => {
-    setEditingLinks((prev) => [...prev, ""]);
-  };
-
-  const deleteLink = (index) => {
+  const addLink = () => setEditingLinks((prev) => [...prev, ""]);
+  const deleteLink = (index) =>
     setEditingLinks((prev) => prev.filter((_, i) => i !== index));
-  };
 
   const saveLinks = () => {
     if (!expandedProfile) return;
-
     const tabs = editingLinks
-      .filter((url) => typeof url === "string" && url.trim() !== "")
+      .filter((url) => url.trim())
       .map((url) => ({ url: url.trim(), pinned: false }));
-
     setIsLoading(true);
     chrome.runtime.sendMessage(
       { action: "setProfileTabs", name: expandedProfile, tabs },
@@ -134,100 +108,169 @@ export default function App() {
   };
 
   return (
-    <div id="root">
-      <h2>Tab Profiles</h2>
-
-      <div className="new-profile-container">
-        <input
-          className="new-profile-input"
-          placeholder="New profile name"
+    <Box
+      sx={{
+        padding: 2,
+        minWidth: 360,
+        backgroundColor: "#121212",
+        color: "#fff",
+      }}
+    >
+      <Typography variant="h5" gutterBottom>
+        Tab Profiles
+      </Typography>
+      <Stack direction="row" spacing={1} mb={2}>
+        <TextField
+          label="New profile name"
+          variant="outlined"
+          size="small"
+          fullWidth
           value={newProfileName}
           onChange={(e) => setNewProfileName(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && createProfile()}
           disabled={isLoading}
+          sx={{
+            input: { color: "#fff" },
+            label: { color: "#ccc" },
+            backgroundColor: "#2a2a2a",
+            borderRadius: 1,
+            "& .MuiOutlinedInput-root": {
+              "& fieldset": { borderColor: "#555" },
+              "&:hover fieldset": { borderColor: "#888" },
+              "&.Mui-focused fieldset": { borderColor: "#aaa" },
+            },
+          }}
         />
-        <button
+
+        <Button
+          variant="contained"
           onClick={createProfile}
           disabled={isLoading || !newProfileName.trim()}
         >
           Create
-        </button>
-      </div>
+        </Button>
+      </Stack>
 
-      <div className="profiles-container">
-        <strong>Profiles:</strong>
-        {profiles.length === 0 ? (
-          <p>No profiles</p>
-        ) : (
-          <ul>
-            {profiles.map((p) => (
-              <li key={p.name} className="profile-item">
-                <div className="profile-row">
-                  <div className="profile-name">{p.name}</div>
-                  <div className="profile-buttons">
-                    {p.active ? (
-                      <button onClick={deactivateProfile}>Deactivate</button>
-                    ) : (
-                      <button onClick={() => activateProfile(p.name)}>
-                        Activate
-                      </button>
-                    )}
-                    <button
+      <Typography variant="subtitle1" gutterBottom>
+        Profiles:
+      </Typography>
+      {profiles.length === 0 ? (
+        <Typography>No profiles</Typography>
+      ) : (
+        <Stack spacing={2}>
+          {profiles.map((p) => (
+            <Box key={p.name}>
+              <Paper sx={{ p: 1, backgroundColor: "#2a2a2a", color: "#fff" }}>
+                <Stack
+                  direction="row"
+                  justifyContent="space-between"
+                  alignItems="center"
+                  spacing={1}
+                >
+                  <Typography variant="body1" fontWeight="bold">
+                    {p.name}
+                  </Typography>
+                  <Stack direction="row" spacing={1}>
+                    <Button
+                      variant="outlined"
+                      color={p.active ? "secondary" : "primary"}
+                      size="small"
+                      onClick={() =>
+                        p.active ? deactivateProfile() : activateProfile(p.name)
+                      }
+                    >
+                      {p.active ? "Deactivate" : "Activate"}
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      size="small"
                       onClick={() => deleteProfile(p.name)}
-                      className="delete-btn"
                     >
                       Delete
-                    </button>
-                    <button onClick={() => toggleLinks(p.name)}>
-                      Show Links
-                    </button>
-                  </div>
-                </div>
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      onClick={() => toggleLinks(p.name)}
+                    >
+                      {expandedProfile === p.name ? "Hide Links" : "Show Links"}
+                    </Button>
+                  </Stack>
+                </Stack>
+              </Paper>
 
-                {expandedProfile === p.name && (
-                  <div className="links-editor">
-                    <strong>Links:</strong>
-                    {editingLinks.length === 0 && (
-                      <p style={{ fontStyle: "italic" }}>No links yet</p>
-                    )}
-                    <ul className="links-list">
-                      {editingLinks.map((url, i) => (
-                        <li key={i}>
-                          <input
-                            type="text"
-                            value={url}
-                            onChange={(e) => updateLink(i, e.target.value)}
-                            disabled={isLoading}
-                            placeholder="Tab URL"
-                          />
-                          <button
-                            onClick={() => deleteLink(i)}
-                            disabled={isLoading}
-                            className="delete-btn"
-                            aria-label={`Delete link ${i + 1}`}
-                          >
-                            ×
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                    <button onClick={addLink} disabled={isLoading}>
+              {expandedProfile === p.name && (
+                <Box mt={1} p={2} bgcolor="#1e1e1e" borderRadius={1}>
+                  <Typography variant="subtitle2">Edit Tabs</Typography>
+                  <Stack spacing={1} mt={1}>
+                    {editingLinks.map((url, i) => (
+                      <Stack
+                        direction="row"
+                        spacing={1}
+                        key={i}
+                        alignItems="center"
+                      >
+                        <TextField
+                          value={url}
+                          onChange={(e) => updateLink(i, e.target.value)}
+                          fullWidth
+                          size="small"
+                          placeholder="https://example.com"
+                          disabled={isLoading}
+                          sx={{
+                            input: { color: "#fff" },
+                            placeholder: { color: "#ccc" },
+                            backgroundColor: "#2a2a2a",
+                            borderRadius: 1,
+                            "& .MuiOutlinedInput-root": {
+                              "& fieldset": { borderColor: "#555" },
+                              "&:hover fieldset": { borderColor: "#888" },
+                              "&.Mui-focused fieldset": { borderColor: "#aaa" },
+                            },
+                          }}
+                        />
+                        <Button
+                          variant="outlined"
+                          color="error"
+                          size="small"
+                          onClick={() => deleteLink(i)}
+                        >
+                          ×
+                        </Button>
+                      </Stack>
+                    ))}
+                  </Stack>
+                  <Stack direction="row" spacing={1} mt={2}>
+                    <Button
+                      onClick={addLink}
+                      disabled={isLoading}
+                      size="small"
+                      variant="outlined"
+                    >
                       + Add Link
-                    </button>{" "}
-                    <button onClick={saveLinks} disabled={isLoading}>
+                    </Button>
+                    <Button
+                      onClick={saveLinks}
+                      disabled={isLoading}
+                      size="small"
+                      variant="contained"
+                      color="primary"
+                    >
                       Save Links
-                    </button>
-                  </div>
-                )}
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+                    </Button>
+                  </Stack>
+                </Box>
+              )}
+            </Box>
+          ))}
+        </Stack>
+      )}
 
-      <div className="current-profile">
+      <Divider sx={{ my: 2 }} />
+      <Typography variant="body2">
         <strong>Current Profile:</strong> {currentProfile || "None"}
-      </div>
-    </div>
+      </Typography>
+    </Box>
   );
 }
