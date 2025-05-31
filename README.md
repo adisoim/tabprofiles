@@ -1,4 +1,4 @@
-Tab Profiles Chrome Extension
+#Tab Profiles Chrome Extension
 Overview
 This Chrome extension allows users to create, save, activate, and manage sets of browser tabs under named "profiles". It’s designed for users who work on different tasks or projects and want to easily switch between relevant sets of tabs.
 
