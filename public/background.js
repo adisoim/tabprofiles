@@ -2,8 +2,8 @@
 
 let profiles = {};
 let currentProfile = null;
-let originalTabs = null; // Save tabs before first profile activation
-let sessionTabsMap = {}; // In-memory only, not persisted
+let originalTabs = null;
+let sessionTabsMap = {};
 
 function loadProfiles() {
   return new Promise((resolve) => {
