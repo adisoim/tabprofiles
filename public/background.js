@@ -10,11 +10,10 @@ function loadProfiles() {
     chrome.storage.local.get("profiles", async (data) => {
       currentProfile = null;
       originalTabs = null;
-      sessionTabsMap = {}; // Clear in-memory session tabs on load/restart
+      sessionTabsMap = {};
 
       profiles = data.profiles || {};
 
-      // Clear active flags for all profiles on startup
       Object.keys(profiles).forEach((name) => {
         profiles[name].active = false;
       });
@@ -56,7 +55,6 @@ function openTabSet(tabSet) {
           );
         });
       } else {
-        // no tabs open, just create them all
         for (const { url, pinned } of tabSet) {
           chrome.tabs.create({ url, pinned });
         }
@@ -79,8 +77,6 @@ chrome.runtime.onInstalled.addListener(async () => {
   sessionTabsMap = {};
   await loadProfiles();
 });
-
-// ... captureCurrentTabs and openTabSet remain unchanged
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   (async () => {
@@ -123,25 +119,19 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         }
 
         if (currentProfile !== null) {
-          // Save current tabs including extras for the old active profile in memory only
           const tabs = await captureCurrentTabs();
           sessionTabsMap[currentProfile] = tabs;
         } else {
-          // First activation in this session, save original tabs
           originalTabs = await captureCurrentTabs();
         }
 
         currentProfile = msg.name;
 
-        // Choose tabs to open:
-        // Use sessionTabs saved in memory for this profile if it exists, otherwise use saved tabs
         const tabsToOpen =
           sessionTabsMap[currentProfile] || profiles[currentProfile].tabs || [];
 
-        // Clear sessionTabs for this profile in memory because we're opening them now
         delete sessionTabsMap[currentProfile];
 
-        // Update active flags
         Object.keys(profiles).forEach((name) => {
           profiles[name].active = name === currentProfile;
         });
@@ -161,17 +151,15 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
           break;
         }
 
-        // Save current tabs including extras for the active profile before deactivation in memory only
         const tabs = await captureCurrentTabs();
         sessionTabsMap[currentProfile] = tabs;
 
         profiles[currentProfile].active = false;
         currentProfile = null;
 
-        // Restore original tabs from before any profile activation
         await openTabSet(originalTabs || []);
 
-        originalTabs = null; // clear after restoring
+        originalTabs = null;
 
         await chrome.storage.local.set({ profiles });
         sendResponse({ success: true });
@@ -209,5 +197,5 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     }
   })();
 
-  return true; // keep message channel open for async response
+  return true;
 });
